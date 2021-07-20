@@ -1,0 +1,129 @@
+
+//msg.sw_name = Software ID of incoming packet (WSJT/JTDX/ETC) Size is calculated and not static!
+//msg.dial_freq = Dial frequency as reported by UDP Sender
+//msg.mode_name = FT8/FT4/etc, NOT the receiver mode (USB/LSB/Etc.)
+
+// Can be expanded to show more detail based on packet data, however no other useful information
+// exist for this project except dial_freq used as used to sync between GQRX network and RigCtlD for JTDX
+//  to trigger a update for the band-hopping script on band-change/mode-change if done manually.
+
+
+// Do NOT Modify! -------------------------------------------------------------
+        function hexToInt(hex) {
+            if (hex.length % 2 != 0) {
+                hex = "0" + hex;
+            }
+            var num = parseInt(hex, 16);
+            var maxVal = Math.pow(2, hex.length / 2 * 8);
+            if (num > maxVal / 2 - 1) {
+                num = num - maxVal
+            }
+            return num;
+        }
+
+
+        // Creation of a function to get the Hex Value from a message
+        function* hexFormatValues(buffer) {
+            for (let x of buffer) {
+                const hex = x.toString(16)
+                yield hex.padStart(2, '0')
+            }
+        }
+
+
+        msg.payload = msg.orig_message;
+
+            // Variable declaration for my loop
+                var string = ""
+                const buf = Buffer.from(msg.payload)
+
+            // Concatenation of the buffer in a string 
+                for (let hex of hexFormatValues(buf)) {string = string + hex } 
+
+            //msg.payload = string;
+
+// Do NOT Modify! -------------------------------------------------------------
+
+
+placeholder_start = 0;
+next_value_length = 8;
+placeholder_stop = placeholder_start + next_value_length;
+magic_packet = string.substring(placeholder_start,placeholder_stop);
+msg.magicpacket = magic_packet;
+
+
+placeholder_start = placeholder_stop;
+next_value_length = 8;
+placeholder_stop = placeholder_start + next_value_length;
+version = parseInt(string.substring(placeholder_start,placeholder_stop));
+msg.version = version;
+
+placeholder_start = placeholder_stop;
+next_value_length = 8;
+placeholder_stop = placeholder_start + next_value_length;
+packet_type = parseInt(string.substring(placeholder_start,placeholder_stop));
+msg.packet_type = packet_type;
+
+placeholder_start = placeholder_stop;
+next_value_length = 8;
+placeholder_stop = placeholder_start + next_value_length;
+
+sw_size = string.substring(placeholder_start,placeholder_stop); // Decode Length Of Software Name (wsjt-x vs jtdx vs whatever)
+sw_name_length = placeholder_start  + next_value_length + (parseInt(sw_size) * 2); // Convert hex value to true interger value, double it, and add it to the last hex position of 32
+sw_name = string.substring(32,sw_name_length);      // Get hex of software name, length based on above
+
+    var hex  = sw_name.toString();
+	var sw_name_2 = '';
+    for (var n = 0; n < hex.length; n += 2) { sw_name_2 += String.fromCharCode(parseInt(hex.substr(n, 2), 16));}
+	// Convert software name from hex to ascii 
+	
+msg.sw_name = sw_name_2;
+
+// END Header
+
+
+// ------------------- Based On STATUS UDP Message
+
+placeholder_start = sw_name_length;
+next_value_length = 8;
+placeholder_stop = placeholder_start + next_value_length;
+unique_key = string.substring(placeholder_start, placeholder_stop);
+unique_key = parseInt(unique_key);
+msg.unique_key = unique_key;
+
+
+// Decoded Dial Frequency
+
+placeholder_start = placeholder_stop;
+next_value_length = 8;
+placeholder_stop = placeholder_start + next_value_length;
+dial_freq = string.substring(placeholder_start,placeholder_stop);
+dial_freq = hexToInt(dial_freq);
+msg.dial_freq = dial_freq;
+// Decoded Dial Freq
+
+
+// Decoded Mode
+placeholder_start = placeholder_stop;
+next_value_length = 8;
+placeholder_stop = placeholder_start + next_value_length;
+
+mode_size = string.substring(placeholder_start,placeholder_stop); // Decode Length Of Software Name (wsjt-x vs jtdx vs whatever)
+mode_name_length = placeholder_start  + next_value_length + (parseInt(mode_size) * 2); // Convert hex value to true interger value, double it, and add it to the last hex position of 32
+//mode_name = string.substring(32,mode_name_length);      // Get hex of software name, length based on above
+mode_name = string.substring(placeholder_stop,mode_name_length);      // Get hex of software name, length based on above
+
+    var hex2  = mode_name.toString();
+	var mode_name_2 = '';
+    for (var o = 0; o < hex2.length; o += 2) { mode_name_2 += String.fromCharCode(parseInt(hex2.substr(o, 2), 16));}
+	// Convert software name from hex to ascii 
+
+msg.mode_name = mode_name_2;
+placeholder_stop = mode_name_length;
+// End Decoded Mode Name
+
+
+msg.payload = ' New Status Message ';
+
+
+return msg;
