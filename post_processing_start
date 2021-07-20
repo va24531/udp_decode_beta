@@ -1,0 +1,48 @@
+let str = msg.qso_message_ascii;
+str = str.trim();                   // remove white spaces at end
+msg.qso_message_ascii = str;        // Rewrite Message and pass forward
+
+const myArr = str.split(" ");
+last_position = (myArr.length -1);
+last_pos_chars = myArr[last_position];
+
+this_message_type = '';
+
+// Look for starting CQ in message ---------------------------------------------
+// Check for TX6
+
+    if (myArr[0] === 'CQ') { this_message_type = 'calling_cq';}
+    
+    if ( this_message_type === 'calling_cq'){ msg.template_message_type = 'calling_cq'; return msg; }
+
+// -----------------------------------------------------------------------------
+
+
+// -----------------------------------------------------------------------------
+// Checks for standard exchange/signal report/RR73, ---> TX2, TX3, TX4, TX5
+
+if (last_pos_chars.charAt(0) === 'R' && last_pos_chars.charAt(1) === '+' || last_pos_chars.charAt(1) === '-'){ this_message_type = 'in_qso';} // R-12
+if (last_pos_chars.charAt(0) === '+' || last_pos_chars.charAt(0) === '-'){ this_message_type = 'in_qso'; } // +00
+if (last_pos_chars === 'RRR' || last_pos_chars === '73' || last_pos_chars === 'RR73'){ this_message_type = 'in_qso'; } // RRR, RR73 or 73
+
+if ( this_message_type === 'in_qso'){ msg.template_message_type = 'in_qso'; return msg; }
+// -----------------------------------------------------------------------------
+
+
+// ----------------------------------------------------------------------------------------------
+// Checks Messages that don't start with CQ for a GRID SQUARE Match in the last position
+// This would qualify as a station trying to answer a CQ call, or is a 'Calling Station'
+// Valid Grids are AA00 - RR99
+
+// Check for TX1's
+
+calling_station = last_pos_chars.match(/[A-R][A-R][0-9][0-9]/g);
+if (calling_station){this_message_type = 'calling_station';}
+//if (last_pos_chars.match(/[A-R][A-R][0-9][0-9]/g) === true){this_message_type = 'calling_station';}
+
+if (this_message_type === 'calling_station'){msg.template_message_type = 'calling_station'; return msg;}
+
+// ----------------------------------------------------------------------------------------------
+
+
+msg.payload = 'Incorrect - ' + str; return msg;
