@@ -1,0 +1,39 @@
+new_array_string = '';
+new_template_string = '';
+temp_counter = 0;
+
+myArr = [];
+
+if (typeof flow.get('calling_cq') !== 'undefined'){
+        let str = flow.get('calling_cq');
+        str = str.substring(0, str.length - 1); // Remove last marker in string
+        myArr = str.split(";");
+        temp_counter = myArr.length;
+}
+
+// timestamp this message
+        var d = new Date();
+        var utch = d.getUTCHours();   if (utch < 10){utch = '0' + utch;}
+        var utcm = d.getUTCMinutes(); if (utcm < 10){utcm = '0' + utcm;}
+        var utcs = d.getUTCSeconds(); if (utcs < 10){utcs = '0' + utcs;}
+            this_message_timestamp = utch + ':' + utcm + ':' + utcs + ' -> ';
+// end timestamp
+
+
+            this_message = '[' + msg.snr_report + '] ' + msg.qso_message_ascii;
+            this_message.trim();
+            this_message = this_message_timestamp + this_message;
+            
+            
+if (temp_counter <12){  myArr.push(this_message); } else { myArr.shift(); myArr.push(this_message); }
+
+
+for (let i = 0; i < myArr.length; i++) {
+  new_array_string += myArr[i] + ';';
+  new_template_string += myArr[i] + "<br>";
+} 
+
+flow.set('calling_cq',new_array_string);
+msg.payload = new_template_string
+
+return msg;
