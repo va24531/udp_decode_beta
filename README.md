@@ -62,3 +62,21 @@ others, however they were of no use to me for the information I was seeking.
  
  
  
+ Snippets :
+    
+    UDP Packet Code
+ 
+                heartbeat_js_nr     Javascript code to decode full type 0 UDP Packet (Heartbeat)
+                status_js_nr        Javascript code to decode partial type 1 UDP Packet (Status)
+                message_js_nr       Javascript code to decode full type 2 UDP Packet (Message)
+                
+    
+    Message Decode Parsing
+    
+                post_processing_start       returns 'calling_cq', 'in_qso', or 'calling_station' based on message content
+                post_calling_cq_js_nr       parses and formats message based on 'tx6' or includes a 'CQ' in msg.
+                post_calling_station_js_nr  parses and formats message based on 'tx1' or included gridsquare
+                post_in_qso_js_nr           parses and formats message based on 'tx2, 3, 4, or 5' status
+                
+
+* RR73 messages are handled as 'in_qso' format. Technically, that could be a 'calling_station' format, but the odds are extremely low that someone is actually on a boat or plane in Grid Square 'RR73', which is a pretty remote location. On the other hand ... DXpedition Anyone???
