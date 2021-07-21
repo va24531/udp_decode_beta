@@ -64,6 +64,10 @@ others, however they were of no use to me for the information I was seeking.
  
  Snippets :
     
+                Decode_UDP_NR       <-> Complete flow for UDP packet, decoding type, and parsing messages.
+                                    <-> Copy entire code and import into Node-Red.
+    
+    
     UDP Packet Code
  
                 heartbeat_js_nr     Javascript code to decode full type 0 UDP Packet (Heartbeat)
